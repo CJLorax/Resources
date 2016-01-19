@@ -42,6 +42,7 @@ int main(int argc, char* argv[]) {
 #if defined(__linux__)
 
 	cout << "Running on Linux..." << endl;
+	cout << "Added on the Linux platform..." << endl;
 
 #endif
 
