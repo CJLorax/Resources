@@ -84,7 +84,6 @@ int main(int argc, char* argv[]) {
 	//Update the surface
 	SDL_UpdateWindowSurface( window );
 
-
 	// ***** set up a Game Controller variable *****
 	SDL_GameController* gGameController = NULL;
 
@@ -373,6 +372,7 @@ int main(int argc, char* argv[]) {
 
 	// message
 	cout << "Player quit the game" << endl;
+
 
 	//SDL_Delay(3000);
 
