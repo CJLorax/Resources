@@ -105,6 +105,8 @@ int main(int argc, char* argv[]) {
 	// create a string to link to the images folder on __APPLE__
 	string images_dir = currentWorkingDirectory +"/Resources/Images/";
 
+
+
 #endif
 
 #if defined(__linux__)
