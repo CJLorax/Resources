@@ -21,11 +21,11 @@
 
 #endif
 
+
 #if defined (_WIN32) || (_WIN64)
 #include <direct.h>
 #define getcwd _getcwd
 #endif
-
 
 #if defined (__linux__)
 #include <unistd.h>
@@ -90,6 +90,7 @@ int main(int argc, char* argv[]) {
 	string currentWorkingDirectory(getcwd(NULL, 0));
 
 	string images_dir = currentWorkingDirectory + "\\Resources\\Images\\";
+
 
 #endif
 
