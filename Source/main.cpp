@@ -2,6 +2,7 @@
 #if defined(_WIN32) || (_WIN64)
 
 #include "SDL.h"
+#include "SDL_image.h"
 
 #endif
 
@@ -19,6 +20,12 @@
 #include "SDL2/SDL_image.h"
 
 #endif
+
+#if defined (_WIN32) || (_WIN64)
+#include <direct.h>
+#define getcwd _getcwd
+#endif
+
 
 #if defined (__linux__)
 #include <unistd.h>
@@ -77,8 +84,12 @@ int main(int argc, char* argv[]) {
 
 #if defined(_WIN32) || (_WIN64)
 
-	cout << "Running on Windows..." << endl;
-	cout << "Added on Windows..." << endl;
+	std::cout << "Running on Windows..." << endl;
+	std::cout << "Added on Windows..." << endl;
+
+	string currentWorkingDirectory(getcwd(NULL, 0));
+
+	string images_dir = currentWorkingDirectory + "\\Resources\\Images\\";
 
 #endif
 
@@ -143,6 +154,8 @@ int main(int argc, char* argv[]) {
 
 	// create the SDL surface to hold the texture file
 	SDL_Surface *surface = IMG_Load((images_dir +"bkgd.png").c_str());
+
+
 
 	// create in game texture - background 1
 	SDL_Texture *bkgd1;
