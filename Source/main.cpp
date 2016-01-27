@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
 	string currentWorkingDirectory(getcwd(NULL,0));
 
 	// create a string to link to the images folder on __APPLE__
-	string images_dir = currentWorkingDirectory +"/Resources/Images/";
+	string images_dir = currentWorkingDirectory +"/Resources.git/Images/";
 
 
 #endif
@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
 	// create the SDL surface to hold the texture file
 	SDL_Surface *surface = IMG_Load((images_dir +"bkgd.png").c_str());
 
-
+	if( surface == NULL ) { printf( "Unable to load image %s! SDL_image Error: %s\n", images_dir.c_str(), IMG_GetError() ); }
 
 	// create in game texture - background 1
 	SDL_Texture *bkgd1;
