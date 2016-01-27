@@ -72,6 +72,8 @@ int main(int argc, char* argv[]) {
     }
 
 
+
+
 	//The surface contained by the window
 	SDL_Surface* screenSurface = NULL;
 
@@ -100,6 +102,8 @@ int main(int argc, char* argv[]) {
     enum GameState { MENU, INSTRUCTIONS, PLAYERS1, PLAYERS2, WIN, LOSE};
     GameState gameState = MENU;
     bool menu, instructions, players1, players2, win, lose, quit;
+
+    quit = false;
 
 
 
