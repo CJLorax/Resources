@@ -135,6 +135,15 @@ bool players1Over = false, players2Over = false, instructionsOver = false,
 
 // ************************************ NEW **********************************
 
+// ************************************ NEW **********************************
+
+// class header includes
+#include "player.h"
+
+// ************************************ NEW **********************************
+
+
+
 int main(int argc, char* argv[]) {
 
 #if defined(_WIN32) || (_WIN64)
@@ -198,6 +207,18 @@ int main(int argc, char* argv[]) {
 
 	//Create Renderer
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+
+
+
+	// *********************************** NEW **************************
+	Player player1 = Player(renderer, 0, images_dir.c_str(), 250.0, 500.0);
+
+	Player player2 = Player(renderer, 1, images_dir.c_str(), 750.0, 500.0);
+	// *********************************** NEW **************************
+
+
+
 
 	// ***************** Create Backgrounds - START *************
 
@@ -582,11 +603,17 @@ int main(int argc, char* argv[]) {
 	// ******** Lose GRAPHICS - end
 	// ***************** Create LOSE Menu - END *************
 
-	// ***** set up a Game Controller variable *****
-	SDL_GameController* gGameController = NULL;
+	// ***** set up a Game Controller variable for player 1 *****
+	SDL_GameController* gGameController0 = NULL;
 
-	// ***** Open Game Controller *****
-	gGameController = SDL_GameControllerOpen(0);
+	// ***** set up a Game Controller variable player 2 *****
+	SDL_GameController* gGameController1 = NULL;
+
+	// ***** Open Game Controller for player 1 *****
+	gGameController0 = SDL_GameControllerOpen(0);
+
+	// ***** Open Game Controller for player 2  *****
+	gGameController1 = SDL_GameControllerOpen(1);
 
 	// ***** Turn on Game Controller Events *****
 	SDL_GameControllerEventState(SDL_ENABLE);
@@ -919,7 +946,10 @@ int main(int argc, char* argv[]) {
 
 		case PLAYERS1:
 
+
 			players1 = true;
+
+
 /*
 			cout << "The Game State is Players1" << endl;
 			cout << "Press A Button for Win Screen" << endl;
@@ -946,23 +976,39 @@ int main(int argc, char* argv[]) {
 					case SDL_CONTROLLERBUTTONDOWN:
 						if (event.cdevice.which == 0) {
 							if (event.cbutton.button
-									== SDL_CONTROLLER_BUTTON_A) {
+									== SDL_CONTROLLER_BUTTON_X) {
 								players1 = false;
 								gameState = WIN;
 							}
 							if (event.cbutton.button
-									== SDL_CONTROLLER_BUTTON_B) {
+									== SDL_CONTROLLER_BUTTON_Y) {
 								players1 = false;
 								gameState = LOSE;
 							}
+							// ************************************ NEW **********************************
+							// send button press info to player1
+							player1.OnControllerButton(event.cbutton);
+							// ************************************ NEW **********************************
+
 						}
 						break;
+						// ************************************ NEW **********************************
+					case SDL_CONTROLLERAXISMOTION:
+
+						player1.OnControllerAxis(event.caxis);
+						break;
+						// ************************************ NEW **********************************
 
 					}
 				}
 
 				// Update Section
 				UpdateBackground();
+
+				// ************************************ NEW **********************************
+				// Update Player 1
+				player1.Update(deltaTime);
+				// ************************************ NEW **********************************
 
 				// Draw Section
 				// clear the old screen buffer
@@ -976,6 +1022,11 @@ int main(int argc, char* argv[]) {
 
 				// Draw Title
 				SDL_RenderCopy(renderer, players1N, NULL, &players1NPos);
+
+				// ************************************ NEW **********************************
+				// Draw Player 1
+				player1.Draw(renderer);
+				// ************************************ NEW **********************************
 
 				// draw new, updated screen
 				SDL_RenderPresent(renderer);
@@ -1007,7 +1058,7 @@ int main(int argc, char* argv[]) {
 					// If window is closed be X in corner
 					if (event.type == SDL_QUIT) {
 						quit = true;
-						players1 = false;
+						players2 = false;
 						break;
 					}
 
@@ -1015,23 +1066,49 @@ int main(int argc, char* argv[]) {
 					case SDL_CONTROLLERBUTTONDOWN:
 						if (event.cdevice.which == 0) {
 							if (event.cbutton.button
-									== SDL_CONTROLLER_BUTTON_A) {
-								players2 = false;
+									== SDL_CONTROLLER_BUTTON_X) {
+								players1 = false;
 								gameState = WIN;
 							}
 							if (event.cbutton.button
-									== SDL_CONTROLLER_BUTTON_B) {
-								players2 = false;
+									== SDL_CONTROLLER_BUTTON_Y) {
+								players1 = false;
 								gameState = LOSE;
 							}
 						}
+							// ************************************ NEW **********************************
+							// send button press info to player 1
+							player1.OnControllerButton(event.cbutton);
+
+							// send button press info to player 2
+							player2.OnControllerButton(event.cbutton);
+							// ************************************ NEW **********************************
+
+
 						break;
+						// ************************************ NEW **********************************
+					case SDL_CONTROLLERAXISMOTION:
+						// send axis info to player 1
+						player1.OnControllerAxis(event.caxis);
+
+						// send axis info to player 2
+						player2.OnControllerAxis(event.caxis);
+						break;
+						// ************************************ NEW **********************************
 
 					}
 				}
 
 				// Update Section
 				UpdateBackground();
+
+				// ************************************ NEW **********************************
+				// Update Player 1
+				player1.Update(deltaTime);
+
+				// Update Player 2
+				player2.Update(deltaTime);
+				// ************************************ NEW **********************************
 
 				// Draw Section
 				// clear the old screen buffer
@@ -1045,6 +1122,14 @@ int main(int argc, char* argv[]) {
 
 				// Draw Title
 				SDL_RenderCopy(renderer, players2N, NULL, &players2NPos);
+
+				// ************************************ NEW **********************************
+				// Draw Player 1
+				player1.Draw(renderer);
+
+				// Draw Player 2
+				player2.Draw(renderer);
+				// ************************************ NEW **********************************
 
 				// draw new, updated screen
 				SDL_RenderPresent(renderer);
