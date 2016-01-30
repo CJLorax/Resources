@@ -150,7 +150,7 @@ void UpdateCursor() {
 SDL_Texture* loadTexture(const string file, SDL_Renderer *renderer){
 
 	//Initialize to nullptr to avoid dangling pointer issues
-	SDL_Texture *texture = nullptr;
+	SDL_Texture *texture = NULL;
 
 	//Load the image
 	SDL_Surface *test = IMG_Load(file.c_str());
