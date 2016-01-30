@@ -48,6 +48,10 @@ Player::Player(SDL_Renderer *renderer, int pNum, string filePath, float x, float
 	pos_X = x;
 
 	pos_Y = y;
+
+	// set the xDir and yDir for the joysticks
+	xDir = 0;
+	yDir = 0;
 }
 
 // Player Update method
@@ -60,6 +64,26 @@ void Player::Update(float deltaTime)
 	// Update player position with code to account for precision loss
 	posRect.x = (int)(pos_X + 0.5f);
 	posRect.y = (int)(pos_Y + 0.5f);
+
+	if (posRect.x < 0) {
+		posRect.x = 0;
+		pos_X = posRect.x;
+	}
+
+	if (posRect.x > 1024 - posRect.w) {
+		posRect.x = 1024 - posRect.w;
+		pos_X = posRect.x;
+	}
+
+	if (posRect.y < 0) {
+		posRect.y = 0;
+		pos_Y = posRect.y;
+	}
+
+	if (posRect.y > 768 - posRect.h) {
+		posRect.y = 768 - posRect.h;
+		pos_Y = posRect.y;
+	}
 
 }
 

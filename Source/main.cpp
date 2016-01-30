@@ -1,31 +1,28 @@
 #if defined(_WIN32) || (_WIN64)
-
-#include "SDL.h"
-#include "SDL_image.h"
+	#include "SDL.h"
+	#include "SDL_image.h"
 
 #endif
 
 #if defined(__APPLE__)
-
-#include "SDL2/SDL.h"
-#include "SDL2_image/SDL_image.h"
+	#include "SDL2/SDL.h"
+	#include "SDL2_image/SDL_image.h"
 
 #endif
 
 #if defined(__linux__)
-
-#include "SDL2/SDL.h"
-#include "SDL2/SDL_image.h"
+	#include "SDL2/SDL.h"
+	#include "SDL2/SDL_image.h"
 
 #endif
 
 #if defined (_WIN32) || (_WIN64)
-#include <direct.h>
-#define getcwd _getcwd
+	#include <direct.h>
+	#define getcwd _getcwd
 #endif
 
 #if defined (__linux__)
-#include <unistd.h>
+	#include <unistd.h>
 #endif
 
 #include <stdio.h>
@@ -127,7 +124,70 @@ void UpdateCursor() {
 
 	activePos.x = cursorPos.x;
 	activePos.y = cursorPos.y;
+
+	if (cursorPos.x < 0) {
+		cursorPos.x = 0;
+		pos_X = cursorPos.x;
+	}
+
+	if (cursorPos.x > 1024 - cursorPos.w) {
+		cursorPos.x = 1024 - cursorPos.w;
+		pos_X = cursorPos.x;
+	}
+
+	if (cursorPos.y < 0) {
+		cursorPos.y = 0;
+		pos_Y = cursorPos.y;
+	}
+
+	if (cursorPos.y > 768 - cursorPos.h) {
+		cursorPos.y = 768 - cursorPos.h;
+		pos_Y = cursorPos.y;
+	}
 }
+
+
+SDL_Texture* loadTexture(const string file, SDL_Renderer *renderer){
+
+	//Initialize to nullptr to avoid dangling pointer issues
+	SDL_Texture *texture = nullptr;
+
+	//Load the image
+	SDL_Surface *test = IMG_Load(file.c_str());
+
+	texture = SDL_CreateTextureFromSurface(renderer,test);
+
+	//Release the SDL surface for later use
+	SDL_FreeSurface(test);
+
+	// return the texture
+	return texture;
+}
+
+SDL_Rect rectangle (SDL_Texture *texture, int x, int y)
+{
+
+	SDL_Rect posRect;
+
+	// set the SDL_Rect X and Y for the player
+	posRect.x = x;
+
+	posRect.y = y;
+
+	// Use SDL_QueryTexture to get the W and H of the player's texture
+	int w, h;
+
+	SDL_QueryTexture(texture, NULL, NULL, &w, &h);
+
+	posRect.w = w;
+
+	posRect.h = h;
+
+	// return the texture
+	return posRect;
+
+}
+
 
 // variables for all Menus button over
 bool players1Over = false, players2Over = false, instructionsOver = false,
@@ -147,39 +207,24 @@ bool players1Over = false, players2Over = false, instructionsOver = false,
 int main(int argc, char* argv[]) {
 
 #if defined(_WIN32) || (_WIN64)
-
-	std::cout << "Running on Windows..." << endl;
-	std::cout << "Added on Windows..." << endl;
-
 	string currentWorkingDirectory(getcwd(NULL, 0));
-
 	string images_dir = currentWorkingDirectory + "\\Resources\\Images\\";
-
 #endif
 
 #if defined(__APPLE__)
-
-	cout << "Running on Apple..." << endl;
-
 	// string var to hold the current working directory on __APPLE__
 	string currentWorkingDirectory(getcwd(NULL, 0));
 
 	// create a string to link to the images folder on __APPLE__
 	string images_dir = currentWorkingDirectory + "/Resources/Images/";
-
 #endif
 
 #if defined(__linux__)
-
-	cout << "Running on Linux..." << endl;
-	cout << "Added on the Linux platform..." << endl;
-
 	// string var to hold the current working directory on __APPLE__
 	string currentWorkingDirectory(getcwd(NULL,0));
 
 	// create a string to link to the images folder on __APPLE__
 	string images_dir = currentWorkingDirectory +"/Resources/Images/";
-
 #endif
 
 	SDL_Window *window;                    // Declare a pointer
@@ -209,399 +254,177 @@ int main(int argc, char* argv[]) {
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
 
-
-
-	// *********************************** NEW **************************
+	// *********************************** Create Players - START **************************
 	Player player1 = Player(renderer, 0, images_dir.c_str(), 250.0, 500.0);
-
 	Player player2 = Player(renderer, 1, images_dir.c_str(), 750.0, 500.0);
-	// *********************************** NEW **************************
-
-
+	// *********************************** Create Players - END **************************
 
 
 	// ***************** Create Backgrounds - START *************
 
-	// create the SDL surface to hold the texture file
-	SDL_Surface *surface = IMG_Load((images_dir + "bkgd.png").c_str());
+		SDL_Texture * bkgd1 =  loadTexture((images_dir + "bkgd.png").c_str(), renderer);
+		SDL_Texture * bkgd2 =  loadTexture((images_dir + "bkgd.png").c_str(), renderer);
 
-	if (surface == NULL) {
-		printf("Unable to load image %s! SDL_image Error: %s\n",
-				images_dir.c_str(), IMG_GetError());
-	}
+		// the rectangle which has the X pos, Ypos, texture Width and texture Height - bkgd1
+		bkgd1Pos.x = 0;
+		bkgd1Pos.y = 0;
+		bkgd1Pos.w = 1024;
+		bkgd1Pos.h = 768;
 
-	// create in game texture - background 1
-	SDL_Texture *bkgd1;
+		// the rectangle which has the X pos, Ypos, texture Width and texture Height - bkgd2
+		bkgd2Pos.x = 0;
+		bkgd2Pos.y = -768;
+		bkgd2Pos.w = 1024;
+		bkgd2Pos.h = 768;
+	// ***************** Create BACKGROUNDS - END *************
 
-	// place surface with image to display in the texture
-	bkgd1 = SDL_CreateTextureFromSurface(renderer, surface);
 
-	// create in game texture - background 2
-	SDL_Texture *bkgd2;
 
-	// place surface with image to display in the texture
-	bkgd2 = SDL_CreateTextureFromSurface(renderer, surface);
+	// ***************** Create CURSOR - START *************
 
-	//Release the SDL surface for later use
-	SDL_FreeSurface(surface);
+		SDL_Texture * cursor =  loadTexture((images_dir + "cursor.png").c_str(), renderer);
 
-	// the rectangle which has the X pos, Ypos, texture Width and texture Height - bkgd1
-	bkgd1Pos.x = 0;
-	bkgd1Pos.y = 0;
-	bkgd1Pos.w = 1024;
-	bkgd1Pos.h = 768;
+		// the rectangle which has the X pos, Ypos, texture Width and texture Height - cursor graphic
+		cursorPos.x = 0;
+		cursorPos.y = 0;
+		cursorPos.w = 58;
+		cursorPos.h = 52;
 
-	// the rectangle which has the X pos, Ypos, texture Width and texture Height - bkgd2
-	bkgd2Pos.x = 0;
-	bkgd2Pos.y = -768;
-	bkgd2Pos.w = 1024;
-	bkgd2Pos.h = 768;
+		// the rectangle which has the X pos, Ypos, texture Width and texture Height - cursor graphic
+		activePos.x = 10;
+		activePos.y = 10;
+		activePos.w = 10;
+		activePos.h = 10;
 
-	// ***************** Create Backgrounds - END *************
+	// ***************** Create CURSOR - END *************
 
-	// ***************** Create Cursor - START *************
-	// create the SDL surface to hold the texture file
-	surface = IMG_Load((images_dir + "cursor.png").c_str());
 
-	// create in game texture - 2 player button
-	SDL_Texture *cursor;
 
-	// place surface with image to display in the texture
-	cursor = SDL_CreateTextureFromSurface(renderer, surface);
+	// ***************** Create INSTRUCTIONS MENU - START *************
 
-	//Release the SDL surface for later use
-	SDL_FreeSurface(surface);
+		// ******** TITLE  - START
+			// create the SDL surface to hold the texture file
+			SDL_Texture * instructionsText =  loadTexture((images_dir + "instructions.png").c_str(), renderer);
 
-	// the rectangle which has the X pos, Ypos, texture Width and texture Height - cursor graphic
-	cursorPos.x = 0;
-	cursorPos.y = 0;
-	cursorPos.w = 58;
-	cursorPos.h = 52;
+			// the rectangle which has the X pos, Ypos, texture Width and texture Height
+			SDL_Rect instructionsTextPos = rectangle (instructionsText, 120, 271);
+		// ******** TITLE - END
 
-	// the rectangle which has the X pos, Ypos, texture Width and texture Height - cursor graphic
-	activePos.x = 10;
-	activePos.y = 10;
-	activePos.w = 10;
-	activePos.h = 10;
+		// ******** SMALL MENU NORMAL - START
+			// create the SDL surface to hold the texture file
+			SDL_Texture * menuN =  loadTexture((images_dir + "menu_n.png").c_str(), renderer);
 
-	// ***************** Create Cursor - END *************
+			// the rectangle which has the X pos, Ypos, texture Width and texture Height
+			SDL_Rect menuNPos = rectangle (menuN, 22, 702);
+		// ******** SMALL MENU NORMAL - END
 
-	// ***************** Create INSTRUCTIONS Menu - START *************
+		// ******** SMALL MENU OVER - START
+			// create the SDL surface to hold the texture file
+			SDL_Texture * menuO =  loadTexture((images_dir + "menu_o.png").c_str(), renderer);
+		// ******** SMALL MENU OVER - END
 
-	// ******** INSTRUCTIONS GRAPHICS  - START
-	// create the SDL surface to hold the texture file
-	surface = IMG_Load((images_dir + "instructions.png").c_str());
+	// ***************** Create INSTRUCTION MENU - END *************
 
-	// create in game texture - background 1
-	SDL_Texture *instructionsText;
 
-	// place surface with image to display in the texture
-	instructionsText = SDL_CreateTextureFromSurface(renderer, surface);
-
-	//Release the SDL surface for later use
-	SDL_FreeSurface(surface);
-
-	// create SDL Rectangle for the title graphic
-	SDL_Rect instructionsTextPos;
-
-	// the rectangle which has the X pos, Ypos, texture Width and texture Height - title
-	instructionsTextPos.x = 120;
-	instructionsTextPos.y = 271;
-	instructionsTextPos.w = 781;
-	instructionsTextPos.h = 258;
-	// ******** INSTRUCTIONS GRAPHICS - end
-
-	// ******** Small Menu Button   - START
-	// create the SDL surface to hold the texture file
-	surface = IMG_Load((images_dir + "menu_n.png").c_str());
-
-	// create in game texture - background 1
-	SDL_Texture *menuN;
-
-	// place surface with image to display in the texture
-	menuN = SDL_CreateTextureFromSurface(renderer, surface);
-
-	//Release the SDL surface for later use
-	SDL_FreeSurface(surface);
-
-	// create the SDL surface to hold the texture file
-	surface = IMG_Load((images_dir + "menu_o.png").c_str());
-
-	// create in game texture - background 1
-	SDL_Texture *menuO;
-
-	// place surface with image to display in the texture
-	menuO = SDL_CreateTextureFromSurface(renderer, surface);
-
-	//Release the SDL surface for later use
-	SDL_FreeSurface(surface);
-
-	// create SDL Rectangle for the title graphic
-	SDL_Rect menuNPos;
-
-	// the rectangle which has the X pos, Ypos, texture Width and texture Height - title
-	menuNPos.x = 22;
-	menuNPos.y = 702;
-	menuNPos.w = 145;
-	menuNPos.h = 41;
-	// ******** Small Menu Button - end
-
-	// ***************** Create Instructions Menu - END *************
 
 	// ***************** Create MAIN MENU - START *************
 
-	// ******** TITLE - START
-	// create the SDL surface to hold the texture file
-	surface = IMG_Load((images_dir + "title.png").c_str());
+		// ******** TITLE  - START
+			// create the SDL surface to hold the texture file
+			SDL_Texture * title =  loadTexture((images_dir + "title.png").c_str(), renderer);
 
-	// create in game texture - background 1
-	SDL_Texture *title;
+			// the rectangle which has the X pos, Ypos, texture Width and texture Height
+			SDL_Rect titlePos = rectangle (title, 264, 73);
+		// ******** TITLE - END
 
-	// place surface with image to display in the texture
-	title = SDL_CreateTextureFromSurface(renderer, surface);
+		// ******** PLAYERS 1  - START
+			// create the SDL surface to hold the texture file
+			SDL_Texture * players1N =  loadTexture((images_dir + "one_n.png").c_str(), renderer);
 
-	//Release the SDL surface for later use
-	SDL_FreeSurface(surface);
+			// the rectangle which has the X pos, Ypos, texture Width and texture Height
+			SDL_Rect players1NPos = rectangle (players1N, 380, 261);
 
-	// create SDL Rectangle for the title graphic
-	SDL_Rect titlePos;
+			// create the SDL surface to hold the texture file
+			SDL_Texture * players1O =  loadTexture((images_dir + "one_o.png").c_str(), renderer);
+		// ******** PLAYERS 1  - END
 
-	// the rectangle which has the X pos, Ypos, texture Width and texture Height - title
-	titlePos.x = 264;
-	titlePos.y = 73;
-	titlePos.w = 532;
-	titlePos.h = 71;
-	// ******** TITLE - end
+		// ******** PLAYERS 2  - START
+			// create the SDL surface to hold the texture file
+			SDL_Texture * players2N =  loadTexture((images_dir + "two_n.png").c_str(), renderer);
 
-	// ******** 1 PLAYER - START
-	// create the SDL surface to hold the texture file
-	surface = IMG_Load((images_dir + "one_n.png").c_str());
+			// the rectangle which has the X pos, Ypos, texture Width and texture Height
+			SDL_Rect players2NPos = rectangle (players2N, 360,343);
 
-	// create in game texture - background 1
-	SDL_Texture *players1N;
+			// create the SDL surface to hold the texture file
+			SDL_Texture * players2O =  loadTexture((images_dir + "two_o.png").c_str(), renderer);
+		// ******** PLAYERS 2  - END
 
-	// place surface with image to display in the texture
-	players1N = SDL_CreateTextureFromSurface(renderer, surface);
+		// ******** INSTRUCTIONS  - START
+			// create the SDL surface to hold the texture file
+			SDL_Texture * instructN =  loadTexture((images_dir + "instruct_n.png").c_str(), renderer);
 
-	//Release the SDL surface for later use
-	SDL_FreeSurface(surface);
+			// the rectangle which has the X pos, Ypos, texture Width and texture Height
+			SDL_Rect instructNPos = rectangle (instructN, 351, 424);
 
-	// create the SDL surface to hold the texture file
-	surface = IMG_Load((images_dir + "one_o.png").c_str());
+			// create the SDL surface to hold the texture file
+			SDL_Texture * instructO =  loadTexture((images_dir + "instruct_o.png").c_str(), renderer);
+		// ******** INSTRUCTIONS  - END
 
-	// create in game texture - background 1
-	SDL_Texture *players1O;
+		// ******** QUIT  - START
+			// create the SDL surface to hold the texture file
+			SDL_Texture * quitN =  loadTexture((images_dir + "quit_n.png").c_str(), renderer);
 
-	// place surface with image to display in the texture
-	players1O = SDL_CreateTextureFromSurface(renderer, surface);
+			// the rectangle which has the X pos, Ypos, texture Width and texture Height
+			SDL_Rect quitNPos = rectangle (quitN, 391, 503);
 
-	//Release the SDL surface for later use
-	SDL_FreeSurface(surface);
+			// create the SDL surface to hold the texture file
+			SDL_Texture * quitO =  loadTexture((images_dir + "quit_o.png").c_str(), renderer);
+		// ******** QUIT  - END
 
-	// create SDL Rectangle for the title graphic
-	SDL_Rect players1NPos;
+	// ***************** Create MAIN MENU - END *************
 
-	// the rectangle which has the X pos, Ypos, texture Width and texture Height - title
-	players1NPos.x = 380;
-	players1NPos.y = 261;
-	players1NPos.w = 311;
-	players1NPos.h = 42;
-	// ******** 1 PLAYER - end
 
-	// ******** 2 PLAYER - START
-	// create the SDL surface to hold the texture file
-	surface = IMG_Load((images_dir + "two_n.png").c_str());
-
-	// create in game texture - 2 player button
-	SDL_Texture *players2N;
-
-	// place surface with image to display in the texture
-	players2N = SDL_CreateTextureFromSurface(renderer, surface);
-
-	//Release the SDL surface for later use
-	SDL_FreeSurface(surface);
-
-	// create the SDL surface to hold the texture file
-	surface = IMG_Load((images_dir + "two_o.png").c_str());
-
-	// create in game texture - background 1
-	SDL_Texture *players2O;
-
-	// place surface with image to display in the texture
-	players2O = SDL_CreateTextureFromSurface(renderer, surface);
-
-	//Release the SDL surface for later use
-	SDL_FreeSurface(surface);
-
-	// create SDL Rectangle for the 2 player  graphic
-	SDL_Rect players2NPos;
-
-	// the rectangle which has the X pos, Ypos, texture Width and texture Height - 2 players
-	players2NPos.x = 360;
-	players2NPos.y = 343;
-	players2NPos.w = 352;
-	players2NPos.h = 42;
-	// ******** 2 PLAYER - end
-
-	// ******** INSTRUCTIONS - START
-	// create the SDL surface to hold the texture file
-	surface = IMG_Load((images_dir + "instruct_n.png").c_str());
-
-	// create in game texture - 2 player button
-	SDL_Texture *instructN;
-
-	// place surface with image to display in the texture
-	instructN = SDL_CreateTextureFromSurface(renderer, surface);
-
-	//Release the SDL surface for later use
-	SDL_FreeSurface(surface);
-
-	// create the SDL surface to hold the texture file
-	surface = IMG_Load((images_dir + "instruct_o.png").c_str());
-
-	// create in game texture - background 1
-	SDL_Texture *instructO;
-
-	// place surface with image to display in the texture
-	instructO = SDL_CreateTextureFromSurface(renderer, surface);
-
-	//Release the SDL surface for later use
-	SDL_FreeSurface(surface);
-
-	// create SDL Rectangle for the 2 player  graphic
-	SDL_Rect instructNPos;
-
-	// the rectangle which has the X pos, Ypos, texture Width and texture Height - 2 players
-	instructNPos.x = 351;
-	instructNPos.y = 424;
-	instructNPos.w = 374;
-	instructNPos.h = 42;
-	// ******** INSTRUCTIONS - end
-
-	// ******** QUIT GAME - START
-	// create the SDL surface to hold the texture file
-	surface = IMG_Load((images_dir + "quit_n.png").c_str());
-
-	// create in game texture - 2 player button
-	SDL_Texture *quitN;
-
-	// place surface with image to display in the texture
-	quitN = SDL_CreateTextureFromSurface(renderer, surface);
-
-	//Release the SDL surface for later use
-	SDL_FreeSurface(surface);
-
-	// create the SDL surface to hold the texture file
-	surface = IMG_Load((images_dir + "quit_o.png").c_str());
-
-	// create in game texture - background 1
-	SDL_Texture *quitO;
-
-	// place surface with image to display in the texture
-	quitO = SDL_CreateTextureFromSurface(renderer, surface);
-
-	//Release the SDL surface for later use
-	SDL_FreeSurface(surface);
-
-	// create SDL Rectangle for the 2 player  graphic
-	SDL_Rect quitNPos;
-
-	// the rectangle which has the X pos, Ypos, texture Width and texture Height - 2 players
-	quitNPos.x = 391;
-	quitNPos.y = 503;
-	quitNPos.w = 288;
-	quitNPos.h = 42;
-	// ******** INSTRUCTIONS - end
-
-	// ***************** Create MIN MENU - END *************
 
 	// ***************** Create WIN MENU - START *************
 
-	// ******** WIN GRAPHICS  - START
-	// create the SDL surface to hold the texture file
-	surface = IMG_Load((images_dir + "win.png").c_str());
+		// ******** TEXT  - START
+			// create the SDL surface to hold the texture file
+			SDL_Texture * winText =  loadTexture((images_dir + "win.png").c_str(), renderer);
 
-	// create in game texture - background 1
-	SDL_Texture *winText;
+			// the rectangle which has the X pos, Ypos, texture Width and texture Height
+			SDL_Rect winTextPos = rectangle (winText, 240, 288);
+		// ******** TEXT - END
 
-	// place surface with image to display in the texture
-	winText = SDL_CreateTextureFromSurface(renderer, surface);
+		// ******** SMALL PLAY AGAIN NORMAL - START
+			// create the SDL surface to hold the texture file
+			SDL_Texture * playN =  loadTexture((images_dir + "play_n.png").c_str(), renderer);
 
-	//Release the SDL surface for later use
-	SDL_FreeSurface(surface);
+			// the rectangle which has the X pos, Ypos, texture Width and texture Height
+			SDL_Rect playNPos = rectangle (playN, 875, 702);
+			// ******** SMALL MENU NORMAL - END
 
-	// create SDL Rectangle for the title graphic
-	SDL_Rect winTextPos;
-
-	// the rectangle which has the X pos, Ypos, texture Width and texture Height - title
-	winTextPos.x = 240;
-	winTextPos.y = 288;
-	winTextPos.w = 596;
-	winTextPos.h = 114;
-	// ******** WIN GRAPHICS - end
-
-	// ******** Small PLAY AGAIN Button   - START
-	// create the SDL surface to hold the texture file
-	surface = IMG_Load((images_dir + "play_n.png").c_str());
-
-	// create in game texture - background 1
-	SDL_Texture *playN;
-
-	// place surface with image to display in the texture
-	playN = SDL_CreateTextureFromSurface(renderer, surface);
-
-	//Release the SDL surface for later use
-	SDL_FreeSurface(surface);
-
-	// create the SDL surface to hold the texture file
-	surface = IMG_Load((images_dir + "play_o.png").c_str());
-
-	// create in game texture - background 1
-	SDL_Texture *playO;
-
-	// place surface with image to display in the texture
-	playO = SDL_CreateTextureFromSurface(renderer, surface);
-
-	//Release the SDL surface for later use
-	SDL_FreeSurface(surface);
-
-	// create SDL Rectangle for the title graphic
-	SDL_Rect playNPos;
-
-	// the rectangle which has the X pos, Ypos, texture Width and texture Height - title
-	playNPos.x = 875;
-	playNPos.y = 702;
-	playNPos.w = 125;
-	playNPos.h = 40;
-	// ******** Small Menu Button - end
+			// ******** SMALL PLAY AGAIN OVER - START
+			// create the SDL surface to hold the texture file
+			SDL_Texture * playO =  loadTexture((images_dir + "play_o.png").c_str(), renderer);
+			// ******** SMALL PLAY AGAIN OVER - END
 
 	// ***************** Create WIN Menu - END *************
 
+
+
 	// ***************** Create LOSE Menu - START *************
 
-	// ******** Lose GRAPHICS  - START
-	// create the SDL surface to hold the texture file
-	surface = IMG_Load((images_dir + "lose.png").c_str());
+		// ******** TEXT  - START
+			// create the SDL surface to hold the texture file
+			SDL_Texture * loseText =  loadTexture((images_dir + "lose.png").c_str(), renderer);
 
-	// create in game texture - background 1
-	SDL_Texture *loseText;
+			// the rectangle which has the X pos, Ypos, texture Width and texture Height
+			SDL_Rect loseTextPos = rectangle (loseText, 148, 288);
+		// ******** TEXT - END
 
-	// place surface with image to display in the texture
-	loseText = SDL_CreateTextureFromSurface(renderer, surface);
-
-	//Release the SDL surface for later use
-	SDL_FreeSurface(surface);
-
-	// create SDL Rectangle for the title graphic
-	SDL_Rect loseTextPos;
-
-	// the rectangle which has the X pos, Ypos, texture Width and texture Height - title
-	loseTextPos.x = 148;
-	loseTextPos.y = 288;
-	loseTextPos.w = 778;
-	loseTextPos.h = 114;
-	// ******** Lose GRAPHICS - end
 	// ***************** Create LOSE Menu - END *************
+
+
 
 	// ***** set up a Game Controller variable for player 1 *****
 	SDL_GameController* gGameController0 = NULL;
@@ -625,10 +448,14 @@ int main(int argc, char* argv[]) {
 	enum GameState {
 		MENU, INSTRUCTIONS, PLAYERS1, PLAYERS2, WIN, LOSE
 	};
-	GameState gameState = MENU;
-	bool menu, instructions, players1, players2, win, lose, quit;
 
-	quit = false;
+	// Set default GameState
+	GameState gameState = MENU;
+
+
+	// Variables to keep the player in the various states
+	//declare AND initialize for windows
+	bool menu= false, instructions= false, players1= false, players2= false, win= false, lose= false, quit= false;
 
 	// The window is open: could enter program loop here (see SDL_PollEvent())
 
@@ -636,17 +463,11 @@ int main(int argc, char* argv[]) {
 	while (!quit) {
 
 		switch (gameState) {
+
 		case MENU:
 
 			menu = true;
-/*
-			cout << "The Game State is Menu" << endl;
-			cout << "Press A Button for Instructions" << endl;
-			cout << "Press B Button for 1 Player Game" << endl;
-			cout << "Press X Button for 2 Player Game" << endl;
-			cout << "Press Y Button for Quit Game" << endl;
-			cout << endl;
-*/
+
 			while (menu) {
 				// Create deltaTime - for frame rate independence
 				thisTime = SDL_GetTicks();
@@ -715,65 +536,11 @@ int main(int argc, char* argv[]) {
 				// ************************************ NEW **********************************
 				UpdateCursor();
 
-				// check for collision between cursor active state and player 1 button
-				if (SDL_HasIntersection(&activePos, &players1NPos)) {
-					if (!players1Over) {
-						//cout << "Within Button" << endl;
-						players1Over = true;
-						// play audio sound from bullet
-						//Mix_PlayChannel(-1, over, 0);
-					}
-				} else {
-					if (players1Over) {
-						//cout << "Outside Button" << endl;
-						players1Over = false;
-					}
-				}
-
-				// check for collision between cursor active state and player 2 button
-				if (SDL_HasIntersection(&activePos, &players2NPos)) {
-					if (!players2Over) {
-						//cout << "Within Button" << endl;
-						players2Over = true;
-						// play audio sound from bullet
-						//Mix_PlayChannel(-1, over, 0);
-					}
-				} else {
-					if (players2Over) {
-						//cout << "Outside Button" << endl;
-						players2Over = false;
-					}
-				}
-
-				// check for collision between cursor active state and player 2 button
-				if (SDL_HasIntersection(&activePos, &instructNPos)) {
-					if (!instructionsOver) {
-						//cout << "Within Button" << endl;
-						instructionsOver = true;
-						// play audio sound from bullet
-						//Mix_PlayChannel(-1, over, 0);
-					}
-				} else {
-					if (instructionsOver) {
-						//cout << "Outside Button" << endl;
-						instructionsOver = false;
-					}
-				}
-
-				// check for collision between cursor active state and player 2 button
-				if (SDL_HasIntersection(&activePos, &quitNPos)) {
-					if (!quitOver) {
-						//cout << "Within Button" << endl;
-						quitOver = true;
-						// play audio sound from bullet
-						//Mix_PlayChannel(-1, over, 0);
-					}
-				} else {
-					if (quitOver) {
-						//cout << "Outside Button" << endl;
-						quitOver = false;
-					}
-				}
+				// check for collision between cursor active state and buttons
+				players1Over = SDL_HasIntersection(&activePos, &players1NPos);
+				players2Over = SDL_HasIntersection(&activePos, &players2NPos);
+				instructionsOver = SDL_HasIntersection(&activePos, &instructNPos);
+				quitOver = SDL_HasIntersection(&activePos, &quitNPos);
 
 				// ************************************ NEW **********************************
 
@@ -1064,15 +831,15 @@ int main(int argc, char* argv[]) {
 
 					switch (event.type) {
 					case SDL_CONTROLLERBUTTONDOWN:
-						if (event.cdevice.which == 0) {
+						if (event.cdevice.which == 0 || event.cdevice.which == 1) {
 							if (event.cbutton.button
 									== SDL_CONTROLLER_BUTTON_X) {
-								players1 = false;
+								players2 = false;
 								gameState = WIN;
 							}
 							if (event.cbutton.button
 									== SDL_CONTROLLER_BUTTON_Y) {
-								players1 = false;
+								players2 = false;
 								gameState = LOSE;
 							}
 						}

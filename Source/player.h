@@ -39,7 +39,8 @@ public:
 	SDL_Rect posRect;
 
 	// floats to hold the joystaick axis (-1 or 0 or 1)
-	float xDir, yDir;
+	float xDir;
+	float yDir;
 
 	// float for player speed
 	float speed;
