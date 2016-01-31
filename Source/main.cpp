@@ -601,13 +601,6 @@ int main(int argc, char* argv[]) {
 
 		case INSTRUCTIONS:
 
-			instructions = true;
-/*
-			cout << "The Game State is Instructions" << endl;
-			cout << "Press A Button for Main Menu" << endl;
-			cout << endl;
-*/
-
 			while (instructions) {
 
 				// Create deltaTime - for frame rate independence
@@ -656,20 +649,7 @@ int main(int argc, char* argv[]) {
 				// ************************************ NEW **********************************
 				UpdateCursor();
 
-				// check for collision between cursor active state and Main Menu button
-				if (SDL_HasIntersection(&activePos, &menuNPos)) {
-					if (!menuOver) {
-						//cout << "Within Button" << endl;
-						menuOver = true;
-						// play audio sound from bullet
-						//Mix_PlayChannel(-1, over, 0);
-					}
-				} else {
-					if (menuOver) {
-						//cout << "Outside Button" << endl;
-						menuOver = false;
-					}
-				}
+				menuOver = SDL_HasIntersection(&activePos, &menuNPos);
 
 				// ************************************ NEW **********************************
 
@@ -716,13 +696,6 @@ int main(int argc, char* argv[]) {
 
 			players1 = true;
 
-
-/*
-			cout << "The Game State is Players1" << endl;
-			cout << "Press A Button for Win Screen" << endl;
-			cout << "Press B Button for Lose Screen" << endl;
-			cout << endl;
-*/
 			while (players1) {
 
 				// Create deltaTime - for frame rate independence
@@ -806,13 +779,6 @@ int main(int argc, char* argv[]) {
 		case PLAYERS2:
 
 			players2 = true;
-
-/*
-			cout << "The Game State is Players2" << endl;
-			cout << "Press A Button for Win Screen" << endl;
-			cout << "Press B Button for Lose Screen" << endl;
-			cout << endl;
-*/
 
 			while (players2) {
 				// Create deltaTime - for frame rate independence
@@ -909,12 +875,7 @@ int main(int argc, char* argv[]) {
 		case WIN:
 
 			win = true;
-/*
-			cout << "The Game State is Win" << endl;
-			cout << "Press A Button for Main Menu" << endl;
-			cout << "Press B Button to Replay Game" << endl;
-			cout << endl;
-*/
+
 			while (win) {
 				// Create deltaTime - for frame rate independence
 				thisTime = SDL_GetTicks();
@@ -969,34 +930,9 @@ int main(int argc, char* argv[]) {
 				// ************************************ NEW **********************************
 				UpdateCursor();
 
-				// check for collision between cursor active state and Main Menu button
-				if (SDL_HasIntersection(&activePos, &menuNPos)) {
-					if (!menuOver) {
-						//cout << "Within Button" << endl;
-						menuOver = true;
-						// play audio sound from bullet
-						//Mix_PlayChannel(-1, over, 0);
-					}
-				} else {
-					if (menuOver) {
-						//cout << "Outside Button" << endl;
-						menuOver = false;
-					}
-				}
-				// check for collision between cursor active state and play again button
-				if (SDL_HasIntersection(&activePos, &playNPos)) {
-					if (!playOver) {
-						//cout << "Within Button" << endl;
-						playOver = true;
-						// play audio sound from bullet
-						//Mix_PlayChannel(-1, over, 0);
-					}
-				} else {
-					if (playOver) {
-						//cout << "Outside Button" << endl;
-						playOver = false;
-					}
-				}
+				menuOver = SDL_HasIntersection(&activePos, &menuNPos);
+
+				playOver = SDL_HasIntersection(&activePos, &playNPos);
 
 				// ************************************ NEW **********************************
 
@@ -1043,14 +979,8 @@ int main(int argc, char* argv[]) {
 
 		case LOSE:
 
-
 			lose = true;
-/*
-			cout << "The Game State is Lose" << endl;
-			cout << "Press A Button for Main Menu" << endl;
-			cout << "Press B Button to Replay Game" << endl;
-			cout << endl;
-*/
+
 			while (lose) {
 				// Create deltaTime - for frame rate independence
 				thisTime = SDL_GetTicks();
@@ -1105,34 +1035,9 @@ int main(int argc, char* argv[]) {
 				// ************************************ NEW **********************************
 				UpdateCursor();
 
-				// check for collision between cursor active state and Main Menu button
-				if (SDL_HasIntersection(&activePos, &menuNPos)) {
-					if (!menuOver) {
-						//cout << "Within Button" << endl;
-						menuOver = true;
-						// play audio sound from bullet
-						//Mix_PlayChannel(-1, over, 0);
-					}
-				} else {
-					if (menuOver) {
-						//cout << "Outside Button" << endl;
-						menuOver = false;
-					}
-				}
-				// check for collision between cursor active state and play again button
-				if (SDL_HasIntersection(&activePos, &playNPos)) {
-					if (!playOver) {
-						//cout << "Within Button" << endl;
-						playOver = true;
-						// play audio sound from bullet
-						//Mix_PlayChannel(-1, over, 0);
-					}
-				} else {
-					if (playOver) {
-						//cout << "Outside Button" << endl;
-						playOver = false;
-					}
-				}
+				menuOver = SDL_HasIntersection(&activePos, &menuNPos);
+
+				playOver = SDL_HasIntersection(&activePos, &playNPos);
 
 				// ************************************ NEW **********************************
 
