@@ -202,7 +202,11 @@ bool players1Over = false, players2Over = false, instructionsOver = false,
 
 // ************************************ NEW **********************************
 
-
+/*
+// code for max number of controllers
+#define MAX_CONTROLLERS 2
+SDL_GameController *ControllerHandles[MAX_CONTROLLERS];
+*/
 
 int main(int argc, char* argv[]) {
 
@@ -425,6 +429,8 @@ int main(int argc, char* argv[]) {
 	// ***************** Create LOSE Menu - END *************
 
 
+// ***** Turn on Game Controller Events *****
+	SDL_GameControllerEventState(SDL_ENABLE);
 
 	// ***** set up a Game Controller variable for player 1 *****
 	SDL_GameController* gGameController0 = NULL;
@@ -438,9 +444,24 @@ int main(int argc, char* argv[]) {
 	// ***** Open Game Controller for player 2  *****
 	gGameController1 = SDL_GameControllerOpen(1);
 
-	// ***** Turn on Game Controller Events *****
-	SDL_GameControllerEventState(SDL_ENABLE);
 
+/*
+int MaxJoysticks = SDL_NumJoysticks();
+int ControllerIndex = 0;
+for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
+{
+    if (!SDL_IsGameController(JoystickIndex))
+    {
+        continue;
+    }
+    if (ControllerIndex >= MAX_CONTROLLERS)
+    {
+        break;
+    }
+    ControllerHandles[ControllerIndex] = SDL_GameControllerOpen(JoystickIndex);
+    ControllerIndex++;
+}
+*/
 	// ***** SDL event to handle input *****
 	SDL_Event event;
 
@@ -761,7 +782,7 @@ int main(int argc, char* argv[]) {
 				SDL_RenderCopy(renderer, bkgd2, NULL, &bkgd2Pos);
 
 				// Draw Title
-				SDL_RenderCopy(renderer, players1N, NULL, &players1NPos);
+				//SDL_RenderCopy(renderer, players1N, NULL, &players1NPos);
 
 				// ************************************ NEW **********************************
 				// Draw Player 1
@@ -854,7 +875,7 @@ int main(int argc, char* argv[]) {
 				SDL_RenderCopy(renderer, bkgd2, NULL, &bkgd2Pos);
 
 				// Draw Title
-				SDL_RenderCopy(renderer, players2N, NULL, &players2NPos);
+				//SDL_RenderCopy(renderer, players2N, NULL, &players2NPos);
 
 				// ************************************ NEW **********************************
 				// Draw Player 1
