@@ -3,14 +3,49 @@
 //Analog joystick dead zone
 const int JOYSTICK_DEAD_ZONE = 8000;
 
+// Week 5 ********************************************************************************
 // PLayer creation Method
-Player::Player(SDL_Renderer *renderer, int pNum, string filePath, float x, float y)
+Player::Player(SDL_Renderer *renderer, int pNum, string filePath, string audioPath, float x, float y)
 {
+
 	// set the player number 0 or 1
 	playerNum = pNum;
 
 	// set float for player speed
 	speed = 500.0f;
+
+	// Week 5 ********************************************************************************
+	laser = Mix_LoadWAV((audioPath + "laser.wav").c_str());
+
+	// Week 5 ********************************************************************************
+	oldScore = 0;
+	playerScore = 0;
+	oldLives = 0;
+    playerLives = 3;
+
+    TTF_Init();
+
+    // load the font
+    font = TTF_OpenFont((audioPath + "PHOES___.TTF").c_str(), 40);
+
+	// see if this is player 1, or player 2, and create the correct X an Y locations
+	if(playerNum == 0){
+		//Create the score texture X and Y position
+		scorePos.x = scorePos.y = 10;
+		livesPos.x = 10;
+		livesPos.y = 40;
+	}else{
+		//Create the score texture X and Y position
+		scorePos.x = 650;
+		scorePos.y = 10;
+		livesPos.x = 650;
+		livesPos.y = 40;
+	}
+
+	UpdateScore(renderer);
+
+
+
 
 	// see if this is player 1, or player 2, and create the correct file path
 	if(playerNum == 0){
@@ -71,10 +106,39 @@ Player::Player(SDL_Renderer *renderer, int pNum, string filePath, float x, float
 
 	}
 
+
+
+}
+
+
+// Week 5 ********************************************************************************
+void Player::UpdateScore(SDL_Renderer *renderer){
+
+    // create the text for the font texture
+    tempScore = "Player Score: " + to_string(playerScore);
+
+    if(playerNum == 0){
+		// Place the player 1 score info into a surface
+		scoreSurface = TTF_RenderText_Solid(font, tempScore.c_str(), colorP1);
+    }else{
+		// Place the player 1 score info into a surface
+		scoreSurface = TTF_RenderText_Solid(font, tempScore.c_str(), colorP2);
+    }
+
+    // create the player score texture
+    scoreTexture = SDL_CreateTextureFromSurface(renderer, scoreSurface);
+
+    // get the Width and Height of the texture
+    SDL_QueryTexture(scoreTexture, NULL, NULL, &scorePos.w, &scorePos.h);
+
+    SDL_FreeSurface(scoreSurface);
+
+    oldScore = playerScore;
 }
 
 // Player Update method
-void Player::Update(float deltaTime)
+// Week 5 ********************************************************************************
+void Player::Update(float deltaTime, SDL_Renderer *renderer)
 {
 	// Adjust position floats based on speed, direction of joystick axis and deltaTime
 	pos_X += (speed * xDir) * deltaTime;
@@ -115,6 +179,13 @@ void Player::Update(float deltaTime)
 		}
 	}
 
+	// should score be updated?
+	if (playerScore != oldScore) {
+
+		UpdateScore(renderer);
+
+	}
+
 }
 
 // Player Draw method
@@ -134,6 +205,8 @@ void Player::Draw(SDL_Renderer *renderer)
 		}
 
 	}
+
+	SDL_RenderCopy(renderer, scoreTexture, NULL, &scorePos);
 }
 
 // Player Destruction method
@@ -152,6 +225,10 @@ void Player::OnControllerButton(const SDL_ControllerButtonEvent event)
 		// if A Button
 		if (event.button == 0)
 		{
+			// Week 5 ********************************************************************************
+			// Test
+			playerScore += 10;
+
 			// Create a bullet
 			CreateBullet();
 		}
@@ -163,6 +240,10 @@ void Player::OnControllerButton(const SDL_ControllerButtonEvent event)
 		// if A Button
 		if (event.button == 0)
 		{
+			// Week 5 ********************************************************************************
+			// Test
+			playerScore += 10;
+
 			// Create a bullet
 			CreateBullet();
 
@@ -177,6 +258,10 @@ void Player::CreateBullet(){
 	{
 		// see if the bullet is not active
 		if(bulletList[i].active == false){
+
+			// Week 5 ************************************************************************************************
+			// Play the Over Sound - plays fine through levels, must pause for QUIT
+			Mix_PlayChannel(-1, laser, 0);
 
 			// set bullet to active
 			bulletList[i].active = true;

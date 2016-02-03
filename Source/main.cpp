@@ -1,18 +1,24 @@
 #if defined(_WIN32) || (_WIN64)
 	#include "SDL.h"
 	#include "SDL_image.h"
+	// Week 5 ********************************************************************************
+	#include "SDL_mixer.h"
 
 #endif
 
 #if defined(__APPLE__)
 	#include "SDL2/SDL.h"
 	#include "SDL2_image/SDL_image.h"
+	// Week 5 ********************************************************************************
+	#include "SDL2_mixer/SDL_mixer.h"
 
 #endif
 
 #if defined(__linux__)
 	#include "SDL2/SDL.h"
 	#include "SDL2/SDL_image.h"
+	// Week 5 ********************************************************************************
+	#include "SDL2/SDL_mixer.h"
 
 #endif
 
@@ -221,6 +227,10 @@ int main(int argc, char* argv[]) {
 
 	// create a string to link to the images folder on __APPLE__
 	string images_dir = currentWorkingDirectory + "/Resources/Images/";
+
+	// Week 5 ********************************************************************************
+	// create a string to link to the audio folder on __APPLE__
+	string audio_dir = currentWorkingDirectory + "/Resources/Audio/";
 #endif
 
 #if defined(__linux__)
@@ -257,11 +267,6 @@ int main(int argc, char* argv[]) {
 	//Create Renderer
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-
-	// *********************************** Create Players - START **************************
-	Player player1 = Player(renderer, 0, images_dir.c_str(), 250.0, 500.0);
-	Player player2 = Player(renderer, 1, images_dir.c_str(), 750.0, 500.0);
-	// *********************************** Create Players - END **************************
 
 
 	// ***************** Create Backgrounds - START *************
@@ -478,6 +483,38 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 	//declare AND initialize for windows
 	bool menu= false, instructions= false, players1= false, players2= false, win= false, lose= false, quit= false;
 
+
+	// Week 5 ********************************************************************************
+    // Open Audio Channel
+	Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
+
+    //Load a MUSIC file
+	Mix_Music *bgm = Mix_LoadMUS((audio_dir + "background.mp3").c_str());
+
+   // IF the MUSIC file is not playing - Play it.
+	if(!Mix_PlayingMusic())
+        Mix_PlayMusic(bgm, -1);
+
+	// Set up a Sound Effect CHUNK for the button over state
+	Mix_Chunk *overSound = Mix_LoadWAV((audio_dir + "over.wav").c_str());
+
+	// bool value to control the over sound effect and the buttons
+	bool alreadyOver = false;
+
+	// Set up a Sound Effect CHUNK for the button pressed state
+	Mix_Chunk *pressedSound = Mix_LoadWAV((audio_dir + "pressed.wav").c_str());
+
+	// Week 5 ********************************************************************************
+	// MOVED PLAYERS AFTER AUDIO SOURCE CREATION
+	// *********************************** Create Players - START **************************
+	Player player1 = Player(renderer, 0, images_dir.c_str(), audio_dir.c_str(), 250.0, 500.0);
+	Player player2 = Player(renderer, 1, images_dir.c_str(), audio_dir.c_str(), 750.0, 500.0);
+	// *********************************** Create Players - END **************************
+
+
+
+
+
 	// The window is open: could enter program loop here (see SDL_PollEvent())
 
 	// ***** basic game loop *****
@@ -508,9 +545,13 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 					case SDL_CONTROLLERBUTTONDOWN:
 						if (event.cdevice.which == 0) {
 							if (event.cbutton.button == SDL_CONTROLLER_BUTTON_A) {
+
 								// ************************************ NEW **********************************
 								// If player chooses 1 player game
 								if (players1Over) {
+									// Week 5 ************************************************************************************************
+									// Play the Over Sound - plays fine through levels, must pause for QUIT
+									Mix_PlayChannel(-1, pressedSound, 0);
 									menu = false;
 									gameState = PLAYERS1;
 									players1Over = false;
@@ -518,6 +559,9 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 
 								// If player chooses 2 player game
 								if (players2Over) {
+									// Week 5 ************************************************************************************************
+									// Play the Over Sound - plays fine through levels, must pause for QUIT
+									Mix_PlayChannel(-1, pressedSound, 0);
 									menu = false;
 									gameState = PLAYERS2;
 									players2Over = false;
@@ -525,6 +569,9 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 
 								// If player chooses Instructions
 								if (instructionsOver) {
+									// Week 5 ************************************************************************************************
+									// Play the Over Sound - plays fine through levels, must pause for QUIT
+									Mix_PlayChannel(-1, pressedSound, 0);
 									menu = false;
 									gameState = INSTRUCTIONS;
 									players2Over = false;
@@ -532,6 +579,11 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 
 								// If player chooses to Quit Game
 								if (quitOver) {
+									// Week 5 ************************************************************************************************
+									// Play the Over Sound - plays fine through levels, must pause for QUIT
+									Mix_PlayChannel(-1, pressedSound, 0);
+									// Add a slight delay
+									SDL_Delay(200);
 									menu = false;
 									quit = true;
 									players2Over = false;
@@ -564,6 +616,25 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 				quitOver = SDL_HasIntersection(&activePos, &quitNPos);
 
 				// ************************************ NEW **********************************
+
+
+				// Week 5 ************************************************************************************************
+				// If the cursor is over a button, play the over sound
+				if(players1Over || players2Over || instructionsOver || quitOver){
+					if(alreadyOver == false){
+					 Mix_PlayChannel(-1, overSound, 0);
+					 alreadyOver = true;
+					}
+				}
+
+				// if the cursor is not over ANY button, reset the alreadyOver var
+				if(!players1Over && !players2Over && !instructionsOver && !quitOver){
+					alreadyOver = false;
+				}
+
+
+
+
 
 				// Draw Section
 				// clear the old screen buffer
@@ -768,7 +839,8 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 
 				// ************************************ NEW **********************************
 				// Update Player 1
-				player1.Update(deltaTime);
+				// Week 5 ********************************************************************************
+				player1.Update(deltaTime, renderer);
 				// ************************************ NEW **********************************
 
 				// Draw Section
@@ -858,10 +930,11 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 
 				// ************************************ NEW **********************************
 				// Update Player 1
-				player1.Update(deltaTime);
+				// Week 5 ********************************************************************************
+				player1.Update(deltaTime, renderer);
 
 				// Update Player 2
-				player2.Update(deltaTime);
+				player2.Update(deltaTime, renderer);
 				// ************************************ NEW **********************************
 
 				// Draw Section
