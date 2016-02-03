@@ -114,8 +114,18 @@ Player::Player(SDL_Renderer *renderer, int pNum, string filePath, string audioPa
 // Week 5 ********************************************************************************
 void Player::UpdateScore(SDL_Renderer *renderer){
 
+	// fix for to_string problems on linux
+
+	string Result;          // string which will contain the result
+
+	ostringstream convert;   // stream used for the conversion
+
+	convert << playerScore;      // insert the textual representation of 'Number' in the characters in the stream
+
+	Result = convert.str(); // set 'Result' to the contents of the stream
+
     // create the text for the font texture
-    tempScore = "Player Score: " + to_string(playerScore);
+    tempScore = "Player Score: " + Result;
 
     if(playerNum == 0){
 		// Place the player 1 score info into a surface

@@ -234,11 +234,14 @@ int main(int argc, char* argv[]) {
 #endif
 
 #if defined(__linux__)
-	// string var to hold the current working directory on __APPLE__
+	// string var to hold the current working directory on __linux__
 	string currentWorkingDirectory(getcwd(NULL,0));
 
-	// create a string to link to the images folder on __APPLE__
+	// create a string to link to the images folder on __linux__
 	string images_dir = currentWorkingDirectory +"/Resources/Images/";
+
+	// create a string to link to the images folder on __linux__
+	string audio_dir = currentWorkingDirectory +"/Resources/Audio/";
 #endif
 
 	SDL_Window *window;                    // Declare a pointer
