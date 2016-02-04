@@ -28,6 +28,7 @@
 // needed includes
 #include <string>
 #include <iostream>
+// Week 5 ********************************************************************************
 #include <sstream>
 using namespace std;
 
@@ -126,5 +127,7 @@ private:
 	void CreateBullet();
 
 	void UpdateScore(SDL_Renderer *renderer);
+
+	void UpdateLives(SDL_Renderer *renderer);
 
 };

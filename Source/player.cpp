@@ -44,6 +44,9 @@ Player::Player(SDL_Renderer *renderer, int pNum, string filePath, string audioPa
 
 	UpdateScore(renderer);
 
+	// NEW ********************************************************************************
+	UpdateLives(renderer);
+
 
 
 
@@ -108,6 +111,41 @@ Player::Player(SDL_Renderer *renderer, int pNum, string filePath, string audioPa
 
 
 
+}
+
+// NEW ********************************************************************************
+void Player::UpdateLives(SDL_Renderer *renderer){
+
+	// fix for to_string problems on linux
+
+	string Result;          // string which will contain the result
+
+	ostringstream convert;   // stream used for the conversion
+
+	convert << playerLives;      // insert the textual representation of 'Number' in the characters in the stream
+
+	Result = convert.str(); // set 'Result' to the contents of the stream
+
+    // create the text for the font texture
+    tempLives = "Player Lives: " + Result;
+
+    if(playerNum == 0){
+		// Place the player 1 score info into a surface
+		livesSurface = TTF_RenderText_Solid(font, tempLives.c_str(), colorP1);
+    }else{
+		// Place the player 1 score info into a surface
+		livesSurface = TTF_RenderText_Solid(font, tempLives.c_str(), colorP2);
+    }
+
+    // create the player score texture
+    livesTexture = SDL_CreateTextureFromSurface(renderer, livesSurface);
+
+    // get the Width and Height of the texture
+    SDL_QueryTexture(livesTexture, NULL, NULL, &livesPos.w, &livesPos.h);
+
+    SDL_FreeSurface(livesSurface);
+
+    oldLives = playerLives;
 }
 
 
@@ -196,6 +234,13 @@ void Player::Update(float deltaTime, SDL_Renderer *renderer)
 
 	}
 
+	// NEW ********************************************************************************
+	if (playerLives != oldLives) {
+
+		UpdateLives(renderer);
+
+	}
+
 }
 
 // Player Draw method
@@ -217,6 +262,9 @@ void Player::Draw(SDL_Renderer *renderer)
 	}
 
 	SDL_RenderCopy(renderer, scoreTexture, NULL, &scorePos);
+
+	// NEW ********************************************************************************
+	SDL_RenderCopy(renderer, livesTexture, NULL, &livesPos);
 }
 
 // Player Destruction method
@@ -239,6 +287,9 @@ void Player::OnControllerButton(const SDL_ControllerButtonEvent event)
 			// Test
 			playerScore += 10;
 
+			// NEW ********************************************************************************
+			playerLives -= 1;
+
 			// Create a bullet
 			CreateBullet();
 		}
@@ -253,6 +304,9 @@ void Player::OnControllerButton(const SDL_ControllerButtonEvent event)
 			// Week 5 ********************************************************************************
 			// Test
 			playerScore += 10;
+
+			// NEW ********************************************************************************
+			playerLives -= 1;
 
 			// Create a bullet
 			CreateBullet();

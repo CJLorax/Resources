@@ -205,8 +205,16 @@ bool players1Over = false, players2Over = false, instructionsOver = false,
 
 // class header includes
 #include "player.h"
+#include "enemy.h"
+#include <vector>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
 
 // ************************************ NEW **********************************
+
+// variable to hold the list of enemies: for 1 player game - 6 total, for 2 player game - 12 total
+vector<Enemy> enemyList;
+
 
 /*
 // code for max number of controllers
@@ -216,9 +224,16 @@ SDL_GameController *ControllerHandles[MAX_CONTROLLERS];
 
 int main(int argc, char* argv[]) {
 
+	/* initialize random seed: */
+	srand (time(NULL));
+
 #if defined(_WIN32) || (_WIN64)
 	string currentWorkingDirectory(getcwd(NULL, 0));
 	string images_dir = currentWorkingDirectory + "\\Resources\\Images\\";
+
+	// Week 5 ********************************************************************************
+	// create a string to link to the audio folder on __APPLE__
+	string audio_dir = currentWorkingDirectory + "\\Resource\\Audio\\";
 #endif
 
 #if defined(__APPLE__)
@@ -791,6 +806,17 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 
 			players1 = true;
 
+			//Create the enemy pool - 6
+			for (int i = 0; i < 6; i++)
+			{
+				// create the enemy
+				Enemy tmpEnemy(renderer, images_dir);
+
+				// add to enemylist
+				enemyList.push_back(tmpEnemy);
+
+			}
+
 			while (players1) {
 
 				// Create deltaTime - for frame rate independence
@@ -846,6 +872,15 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 				player1.Update(deltaTime, renderer);
 				// ************************************ NEW **********************************
 
+				// Update the enemies
+				for (int i = 0; i < enemyList.size(); i++)
+				{
+					// update enemy
+					enemyList[i].Update(deltaTime);
+				}
+
+
+
 				// Draw Section
 				// clear the old screen buffer
 				SDL_RenderClear(renderer);
@@ -858,6 +893,13 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 
 				// Draw Title
 				//SDL_RenderCopy(renderer, players1N, NULL, &players1NPos);
+
+				// Draw the enemies
+				for (int i = 0; i < enemyList.size(); i++)
+				{
+					// update enemy
+					enemyList[i].Draw(renderer);
+				}
 
 				// ************************************ NEW **********************************
 				// Draw Player 1
