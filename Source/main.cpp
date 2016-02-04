@@ -803,6 +803,7 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 
 		case PLAYERS1:
 
+			enemyList.clear();
 
 			players1 = true;
 
@@ -894,17 +895,19 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 				// Draw Title
 				//SDL_RenderCopy(renderer, players1N, NULL, &players1NPos);
 
+
+
+				// ************************************ NEW **********************************
+				// Draw Player 1
+				player1.Draw(renderer);
+				// ************************************ NEW **********************************
+
 				// Draw the enemies
 				for (int i = 0; i < enemyList.size(); i++)
 				{
 					// update enemy
 					enemyList[i].Draw(renderer);
 				}
-
-				// ************************************ NEW **********************************
-				// Draw Player 1
-				player1.Draw(renderer);
-				// ************************************ NEW **********************************
 
 				// draw new, updated screen
 				SDL_RenderPresent(renderer);
@@ -916,7 +919,22 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 
 		case PLAYERS2:
 
+			enemyList.clear();
+
 			players2 = true;
+
+			//Create the enemy pool - 12
+			for (int i = 0; i < 12; i++)
+			{
+				// create the enemy
+				Enemy tmpEnemy(renderer, images_dir);
+
+				// add to enemylist
+				enemyList.push_back(tmpEnemy);
+
+			}
+
+
 
 			while (players2) {
 				// Create deltaTime - for frame rate independence
@@ -982,6 +1000,13 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 				player2.Update(deltaTime, renderer);
 				// ************************************ NEW **********************************
 
+				// Update the enemies
+				for (int i = 0; i < enemyList.size(); i++)
+				{
+					// update enemy
+					enemyList[i].Update(deltaTime);
+				}
+
 				// Draw Section
 				// clear the old screen buffer
 				SDL_RenderClear(renderer);
@@ -1002,6 +1027,13 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 				// Draw Player 2
 				player2.Draw(renderer);
 				// ************************************ NEW **********************************
+
+				// Draw the enemies
+				for (int i = 0; i < enemyList.size(); i++)
+				{
+					// update enemy
+					enemyList[i].Draw(renderer);
+				}
 
 				// draw new, updated screen
 				SDL_RenderPresent(renderer);
