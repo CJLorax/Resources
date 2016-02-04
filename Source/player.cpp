@@ -8,6 +8,9 @@ const int JOYSTICK_DEAD_ZONE = 8000;
 Player::Player(SDL_Renderer *renderer, int pNum, string filePath, string audioPath, float x, float y)
 {
 
+	// activate the player
+	active = true;
+
 	// set the player number 0 or 1
 	playerNum = pNum;
 
@@ -146,98 +149,116 @@ void Player::UpdateLives(SDL_Renderer *renderer){
     SDL_FreeSurface(livesSurface);
 
     oldLives = playerLives;
+
+    if(playerLives <= 0)
+    {
+    	active = false;
+
+    	posRect.x = posRect.y = -2000;
+
+    	pos_X = pos_Y = -2000;
+    }
 }
 
 
 // Week 5 ********************************************************************************
 void Player::UpdateScore(SDL_Renderer *renderer){
 
-	// fix for to_string problems on linux
+	if(active == true){
 
-	string Result;          // string which will contain the result
+		// fix for to_string problems on linux
 
-	ostringstream convert;   // stream used for the conversion
+		string Result;          // string which will contain the result
 
-	convert << playerScore;      // insert the textual representation of 'Number' in the characters in the stream
+		ostringstream convert;   // stream used for the conversion
 
-	Result = convert.str(); // set 'Result' to the contents of the stream
+		convert << playerScore;      // insert the textual representation of 'Number' in the characters in the stream
 
-    // create the text for the font texture
-    tempScore = "Player Score: " + Result;
+		Result = convert.str(); // set 'Result' to the contents of the stream
 
-    if(playerNum == 0){
-		// Place the player 1 score info into a surface
-		scoreSurface = TTF_RenderText_Solid(font, tempScore.c_str(), colorP1);
-    }else{
-		// Place the player 1 score info into a surface
-		scoreSurface = TTF_RenderText_Solid(font, tempScore.c_str(), colorP2);
-    }
+		// create the text for the font texture
+		tempScore = "Player Score: " + Result;
 
-    // create the player score texture
-    scoreTexture = SDL_CreateTextureFromSurface(renderer, scoreSurface);
+		if(playerNum == 0){
+			// Place the player 1 score info into a surface
+			scoreSurface = TTF_RenderText_Solid(font, tempScore.c_str(), colorP1);
+		}else{
+			// Place the player 1 score info into a surface
+			scoreSurface = TTF_RenderText_Solid(font, tempScore.c_str(), colorP2);
+		}
 
-    // get the Width and Height of the texture
-    SDL_QueryTexture(scoreTexture, NULL, NULL, &scorePos.w, &scorePos.h);
+		// create the player score texture
+		scoreTexture = SDL_CreateTextureFromSurface(renderer, scoreSurface);
 
-    SDL_FreeSurface(scoreSurface);
+		// get the Width and Height of the texture
+		SDL_QueryTexture(scoreTexture, NULL, NULL, &scorePos.w, &scorePos.h);
 
-    oldScore = playerScore;
+		SDL_FreeSurface(scoreSurface);
+
+		oldScore = playerScore;
+	}
 }
 
 // Player Update method
 // Week 5 ********************************************************************************
 void Player::Update(float deltaTime, SDL_Renderer *renderer)
 {
-	// Adjust position floats based on speed, direction of joystick axis and deltaTime
-	pos_X += (speed * xDir) * deltaTime;
-	pos_Y += (speed * yDir) * deltaTime;
 
-	// Update player position with code to account for precision loss
-	posRect.x = (int)(pos_X + 0.5f);
-	posRect.y = (int)(pos_Y + 0.5f);
+	//if active
+	if(active == true){
 
-	if (posRect.x < 0) {
-		posRect.x = 0;
-		pos_X = posRect.x;
-	}
+		// Adjust position floats based on speed, direction of joystick axis and deltaTime
+		pos_X += (speed * xDir) * deltaTime;
+		pos_Y += (speed * yDir) * deltaTime;
 
-	if (posRect.x > 1024 - posRect.w) {
-		posRect.x = 1024 - posRect.w;
-		pos_X = posRect.x;
-	}
+		// Update player position with code to account for precision loss
+		posRect.x = (int)(pos_X + 0.5f);
+		posRect.y = (int)(pos_Y + 0.5f);
 
-	if (posRect.y < 0) {
-		posRect.y = 0;
-		pos_Y = posRect.y;
-	}
-
-	if (posRect.y > 768 - posRect.h) {
-		posRect.y = 768 - posRect.h;
-		pos_Y = posRect.y;
-	}
-
-	// Update the player's bullets
-	for (int i = 0; i < bulletList.size(); i++)
-	{
-		// check to see if the bullet is active
-		if(bulletList[i].active){
-
-			// update bullet
-			bulletList[i].Update(deltaTime);
+		if (posRect.x < 0) {
+			posRect.x = 0;
+			pos_X = posRect.x;
 		}
-	}
 
-	// should score be updated?
-	if (playerScore != oldScore) {
+		if (posRect.x > 1024 - posRect.w) {
+			posRect.x = 1024 - posRect.w;
+			pos_X = posRect.x;
+		}
 
-		UpdateScore(renderer);
+		if (posRect.y < 0) {
+			posRect.y = 0;
+			pos_Y = posRect.y;
+		}
 
-	}
+		if (posRect.y > 768 - posRect.h) {
+			posRect.y = 768 - posRect.h;
+			pos_Y = posRect.y;
+		}
 
-	// NEW ********************************************************************************
-	if (playerLives != oldLives) {
+		// Update the player's bullets
+		for (int i = 0; i < bulletList.size(); i++)
+		{
+			// check to see if the bullet is active
+			if(bulletList[i].active){
 
-		UpdateLives(renderer);
+				// update bullet
+				bulletList[i].Update(deltaTime);
+			}
+		}
+
+		// should score be updated?
+		if (playerScore != oldScore) {
+
+			UpdateScore(renderer);
+
+		}
+
+		// NEW ********************************************************************************
+		if (playerLives != oldLives) {
+
+			UpdateLives(renderer);
+
+		}
 
 	}
 
@@ -246,25 +267,30 @@ void Player::Update(float deltaTime, SDL_Renderer *renderer)
 // Player Draw method
 void Player::Draw(SDL_Renderer *renderer)
 {
-	// Draw the player texture using the vars texture and posRect
-	SDL_RenderCopy(renderer, texture, NULL, &posRect);
+	// if active
+	if(active == true){
 
-	// draw the player's bullets
-	for (int i = 0; i < bulletList.size(); i++)
-	{
-		// check to see if the bullet is active
-		if(bulletList[i].active){
+		// Draw the player texture using the vars texture and posRect
+		SDL_RenderCopy(renderer, texture, NULL, &posRect);
 
-			// Draw Bullet
-			bulletList[i].Draw(renderer);
+		// draw the player's bullets
+		for (int i = 0; i < bulletList.size(); i++)
+		{
+			// check to see if the bullet is active
+			if(bulletList[i].active){
+
+				// Draw Bullet
+				bulletList[i].Draw(renderer);
+			}
+
 		}
 
+		SDL_RenderCopy(renderer, scoreTexture, NULL, &scorePos);
+
+		// NEW ********************************************************************************
+		SDL_RenderCopy(renderer, livesTexture, NULL, &livesPos);
+
 	}
-
-	SDL_RenderCopy(renderer, scoreTexture, NULL, &scorePos);
-
-	// NEW ********************************************************************************
-	SDL_RenderCopy(renderer, livesTexture, NULL, &livesPos);
 }
 
 // Player Destruction method
@@ -277,41 +303,32 @@ Player::~Player()
 // Player Joystick Button Method
 void Player::OnControllerButton(const SDL_ControllerButtonEvent event)
 {
-	// if the player's number is 0 and the joystick button is from joystick 0
-	if (event.which == 0 && playerNum == 0)
-	{
-		// if A Button
-		if (event.button == 0)
+	if(active == true){
+
+		// if the player's number is 0 and the joystick button is from joystick 0
+		if (event.which == 0 && playerNum == 0)
 		{
-			// Week 5 ********************************************************************************
-			// Test
-			playerScore += 10;
+			// if A Button
+			if (event.button == 0)
+			{
 
-			// NEW ********************************************************************************
-			playerLives -= 1;
-
-			// Create a bullet
-			CreateBullet();
+				// Create a bullet
+				CreateBullet();
+			}
 		}
-	}
 
-	// if the player's number is 1 and the joystick button is from joystick 1
-	if (event.which == 1 && playerNum == 1)
-	{
-		// if A Button
-		if (event.button == 0)
+		// if the player's number is 1 and the joystick button is from joystick 1
+		if (event.which == 1 && playerNum == 1)
 		{
-			// Week 5 ********************************************************************************
-			// Test
-			playerScore += 10;
+			// if A Button
+			if (event.button == 0)
+			{
+				// Create a bullet
+				CreateBullet();
 
-			// NEW ********************************************************************************
-			playerLives -= 1;
-
-			// Create a bullet
-			CreateBullet();
-
+			}
 		}
+
 	}
 }
 

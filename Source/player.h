@@ -40,6 +40,9 @@ class Player {
 
 public:
 
+	// is the player active - still alive?
+	bool active;
+
 	// Week 5 ********************************************************************************
 	//audio sound effect - CHUNK
 	Mix_Chunk *laser;
@@ -122,6 +125,8 @@ public:
 	// Player's destruction method
 	~Player();
 
+
+
 private:
 
 	void CreateBullet();
@@ -129,5 +134,6 @@ private:
 	void UpdateScore(SDL_Renderer *renderer);
 
 	void UpdateLives(SDL_Renderer *renderer);
+
 
 };
