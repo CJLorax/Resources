@@ -93,7 +93,7 @@ void Enemy::Update(float deltaTime) //float delta
 // Enemy draw method
 void Enemy::Draw(SDL_Renderer *renderer)
 {
-	SDL_RenderCopyEx( renderer, texture, nullptr, &posRect, angle, &center, SDL_FLIP_NONE );
+	SDL_RenderCopyEx( renderer, texture, NULL, &posRect, angle, &center, SDL_FLIP_NONE );
 }
 
 // Enemy destruction
