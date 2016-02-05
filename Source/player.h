@@ -125,6 +125,9 @@ public:
 	// Player's destruction method
 	~Player();
 
+	// reset the player
+	void Reset();
+
 
 
 private:

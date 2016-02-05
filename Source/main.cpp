@@ -209,11 +209,36 @@ bool players1Over = false, players2Over = false, instructionsOver = false,
 #include <vector>
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
+#include "explode.h"
 
 // ************************************ NEW **********************************
 
 // variable to hold the list of enemies: for 1 player game - 6 total, for 2 player game - 12 total
 vector<Enemy> enemyList;
+
+vector<Explode> explodeList;
+
+void MakeExplosion(int x, int y){
+	// see if there is a explosion not active to use
+	for (int i = 0; i < explodeList.size(); i++)
+	{
+		// see if the bullet is not active
+		if(explodeList[i].active == false){
+
+			// set explosion to active
+			explodeList[i].active = true;
+
+			// use some math in the x position to get the bullet close to
+			// the center of the player using player width
+			explodeList[i].posRect.x = x;
+			explodeList[i].posRect.y = y;
+
+			// once explosion is found, break out of loop
+			break;
+		}
+
+	}
+}
 
 
 /*
@@ -532,7 +557,16 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 	Player player2 = Player(renderer, 1, images_dir.c_str(), audio_dir.c_str(), 750.0, 500.0);
 	// *********************************** Create Players - END **************************
 
+	//Create a pool of explosions - 20
+	for (int i = 0; i < 20; i++)
+	{
+		// create the enemy
+		Explode tmpExplode(renderer, images_dir, -1000, -1000);
 
+		// add to enemylist
+		explodeList.push_back(tmpExplode);
+
+	}
 
 
 
@@ -595,7 +629,7 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 									Mix_PlayChannel(-1, pressedSound, 0);
 									menu = false;
 									gameState = INSTRUCTIONS;
-									players2Over = false;
+									instructionsOver = false;
 								}
 
 								// If player chooses to Quit Game
@@ -607,7 +641,7 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 									SDL_Delay(200);
 									menu = false;
 									quit = true;
-									players2Over = false;
+									quitOver = false;
 								}
 
 								// ************************************ NEW **********************************
@@ -714,6 +748,8 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 
 		case INSTRUCTIONS:
 
+			instructions = true;
+
 			while (instructions) {
 
 				// Create deltaTime - for frame rate independence
@@ -808,13 +844,8 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 
 			enemyList.clear();
 
-			player1.posRect.x = 250.0;
-			player1.posRect.y = 500.0;
-			player1.pos_X = player1.posRect.x;
-			player1.pos_Y = player1.posRect.y;
-			player1.playerLives = 3;
-			player1.playerScore = 0;
-
+			// reset the player
+			player1.Reset();
 
 			players1 = true;
 
@@ -860,6 +891,7 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 							}
 							// ************************************ NEW **********************************
 							// send button press info to player1
+							if(player1.active)
 							player1.OnControllerButton(event.cbutton);
 							// ************************************ NEW **********************************
 
@@ -868,6 +900,7 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 						// ************************************ NEW **********************************
 					case SDL_CONTROLLERAXISMOTION:
 
+						if(player1.active)
 						player1.OnControllerAxis(event.caxis);
 						break;
 						// ************************************ NEW **********************************
@@ -881,6 +914,7 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 				// ************************************ NEW **********************************
 				// Update Player 1
 				// Week 5 ********************************************************************************
+				if(player1.active)
 				player1.Update(deltaTime, renderer);
 				// ************************************ NEW **********************************
 
@@ -892,57 +926,82 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 				}
 
 
-				// use the player 1 bullet list to see if the active bullets
-				// hit any of the enemies
-				for (int i = 0; i < player1.bulletList.size(); i++)
-				{
-					// check to see if this bullet is active (onscreen)
-					if(player1.bulletList[i].active == true){
 
-						// check all enemies against the active bullet
-						for (int j = 0; j < enemyList.size(); j++)
-						{
-							// if there is a collision between the two objects
-							if(SDL_HasIntersection(&player1.bulletList[i].posRect, &enemyList[j].posRect )){
+				if (player1.active) {
 
-								// play explosion sound
-								Mix_PlayChannel(-1, explosionSound, 0);
+					// use the player 1 bullet list to see if the active bullets
+					// hit any of the enemies
+					for (int i = 0; i < player1.bulletList.size(); i++) {
+						// check to see if this bullet is active (onscreen)
+						if (player1.bulletList[i].active == true) {
 
-								// reset the enemy
-								enemyList[j].Reset();
+							// check all enemies against the active bullet
+							for (int j = 0; j < enemyList.size(); j++) {
+								// if there is a collision between the two objects
+								if (SDL_HasIntersection(&player1.bulletList[i].posRect,&enemyList[j].posRect)) {
 
-								// reset the enemy
-								player1.bulletList[i].Reset();
+									// play explosion sound
+									Mix_PlayChannel(-1, explosionSound, 0);
 
-								//give the player some points
-								player1.playerScore += 50;
+									MakeExplosion(enemyList[j].posRect.x, enemyList[j].posRect.y);
+
+									// reset the enemy
+									enemyList[j].Reset();
+
+									// reset the enemy
+									player1.bulletList[i].Reset();
+
+									//give the player some points
+									player1.playerScore += 50;
+
+									// check to see if there is a winning condition
+									if(player1.playerScore >= 1000)
+									{
+										// go to win
+										players1 = false;
+										gameState = WIN;
+									}
+								}
+							}
+
+						}
+					}
+
+					// check to see if the enemies hit the player
+					for (int i = 0; i < enemyList.size(); i++) {
+						// if there is a collision between the two objects
+						if (SDL_HasIntersection(&player1.posRect,&enemyList[i].posRect)) {
+
+							// play explosion sound
+							Mix_PlayChannel(-1, explosionSound, 0);
+
+							MakeExplosion(player1.posRect.x-32, player1.posRect.y-32);
+
+							// reset the enemy
+							enemyList[i].Reset();
+
+							//give the player some points
+							player1.playerLives -= 1;
+
+							//if game over - player lives <= 0
+							if (player1.playerLives <= 0) {
+								players1 = false;
+								gameState = LOSE;
+								break;
 							}
 						}
 
 					}
+
 				}
 
-				// check to see if the enemies hit the player
-				for (int i = 0; i < enemyList.size(); i++)
+				//Update the pool of explosions - 20
+				for (int i = 0; i < explodeList.size(); i++)
 				{
-					// if there is a collision between the two objects
-					if(SDL_HasIntersection(&player1.posRect, &enemyList[i].posRect )){
-
-						// play explosion sound
-						Mix_PlayChannel(-1, explosionSound, 0);
-
-						// reset the enemy
-						enemyList[i].Reset();
-
-						//give the player some points
-						player1.playerLives -= 1;
-
-						//if game over - player lives <= 0
-						if(player1.playerLives <= 0){
-							players1 = false;
-							gameState = LOSE;
-							break;
-						}
+					// check to see if active
+					if(explodeList[i].active == true){
+						// draw explode
+						explodeList[i].Update(deltaTime);
 					}
 
 				}
@@ -964,6 +1023,7 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 
 				// ************************************ NEW **********************************
 				// Draw Player 1
+				if(player1.active)
 				player1.Draw(renderer);
 				// ************************************ NEW **********************************
 
@@ -972,6 +1032,17 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 				{
 					// update enemy
 					enemyList[i].Draw(renderer);
+				}
+
+				//Draw the pool of explosions - 20
+				for (int i = 0; i < explodeList.size(); i++)
+				{
+					// check to see if active
+					if(explodeList[i].active == true){
+						// draw explode
+						explodeList[i].Draw(renderer);
+					}
+
 				}
 
 				// draw new, updated screen
@@ -985,6 +1056,10 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 		case PLAYERS2:
 
 			enemyList.clear();
+
+			// reset the player
+			player1.Reset();
+			player2.Reset();
 
 			players2 = true;
 
@@ -1032,10 +1107,12 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 						}
 							// ************************************ NEW **********************************
 							// send button press info to player 1
-							player1.OnControllerButton(event.cbutton);
+						if(player1.active)
+						player1.OnControllerButton(event.cbutton);
 
 							// send button press info to player 2
-							player2.OnControllerButton(event.cbutton);
+						if(player2.active)
+						player2.OnControllerButton(event.cbutton);
 							// ************************************ NEW **********************************
 
 
@@ -1043,9 +1120,11 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 						// ************************************ NEW **********************************
 					case SDL_CONTROLLERAXISMOTION:
 						// send axis info to player 1
+						if(player1.active)
 						player1.OnControllerAxis(event.caxis);
 
 						// send axis info to player 2
+						if(player2.active)
 						player2.OnControllerAxis(event.caxis);
 						break;
 						// ************************************ NEW **********************************
@@ -1059,9 +1138,11 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 				// ************************************ NEW **********************************
 				// Update Player 1
 				// Week 5 ********************************************************************************
+				if(player1.active)
 				player1.Update(deltaTime, renderer);
 
 				// Update Player 2
+				if(player2.active)
 				player2.Update(deltaTime, renderer);
 				// ************************************ NEW **********************************
 
@@ -1072,66 +1153,161 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 					enemyList[i].Update(deltaTime);
 				}
 
-				// use the player 1 bullet list to see if the active bullets
-				// hit any of the enemies
-				for (int i = 0; i < player1.bulletList.size(); i++)
+				//Update the pool of explosions - 20
+				for (int i = 0; i < explodeList.size(); i++)
 				{
-					// check to see if this bullet is active (onscreen)
-					if(player1.bulletList[i].active == true){
+					// check to see if active
+					if(explodeList[i].active == true){
+						// draw explode
+						explodeList[i].Update(deltaTime);
+					}
 
-						// check all enemies against the active bullet
-						for (int j = 0; j < enemyList.size(); j++)
-						{
-							// if there is a collision between the two objects
-							if(SDL_HasIntersection(&player1.bulletList[i].posRect, &enemyList[j].posRect )){
+				}
 
-								// play explosion sound
-								Mix_PlayChannel(-1, explosionSound, 0);
+				if (player1.active) {
 
-								// reset the enemy
-								enemyList[j].Reset();
+					// use the player 1 bullet list to see if the active bullets
+					// hit any of the enemies
+					for (int i = 0; i < player1.bulletList.size(); i++) {
+						// check to see if this bullet is active (onscreen)
+						if (player1.bulletList[i].active == true) {
 
-								// reset the enemy
-								player1.bulletList[i].Reset();
+							// check all enemies against the active bullet
+							for (int j = 0; j < enemyList.size(); j++) {
+								// if there is a collision between the two objects
+								if (SDL_HasIntersection(
+										&player1.bulletList[i].posRect,
+										&enemyList[j].posRect)) {
 
-								//give the player some points
-								player1.playerScore += 50;
+									// play explosion sound
+									Mix_PlayChannel(-1, explosionSound, 0);
+
+									MakeExplosion(enemyList[j].posRect.x, enemyList[j].posRect.y);
+
+									// reset the enemy
+									enemyList[j].Reset();
+
+									// reset the enemy
+									player1.bulletList[i].Reset();
+
+									//give the player some points
+									player1.playerScore += 50;
+
+									// check to see if there is a winning condition
+									if(player1.playerScore >= 1000)
+									{
+										// go to win
+										players2 = false;
+										gameState = WIN;
+									}
+								}
+							}
+
+						}
+					}
+
+					// check to see if the enemies hit the player
+					for (int i = 0; i < enemyList.size(); i++) {
+						// if there is a collision between the two objects
+						if (SDL_HasIntersection(&player1.posRect,
+								&enemyList[i].posRect)) {
+
+							// play explosion sound
+							Mix_PlayChannel(-1, explosionSound, 0);
+
+							MakeExplosion(player1.posRect.x-32, player1.posRect.y-32);
+
+							// reset the enemy
+							enemyList[i].Reset();
+
+							//give the player some points
+							player1.playerLives -= 1;
+
+							//if game over - player lives <= 0
+							if (player1.playerLives <= 0 && player2.playerLives <= 0) {
+								players2 = false;
+								gameState = LOSE;
+								break;
 							}
 						}
 
 					}
+
 				}
 
 
-				// use the player 2 bullet list to see if the active bullets
-				// hit any of the enemies
-				for (int i = 0; i < player2.bulletList.size(); i++)
-				{
-					// check to see if this bullet is active (onscreen)
-					if(player2.bulletList[i].active == true){
+				if (player2.active) {
 
-						// check all enemies against the active bullet
-						for (int j = 0; j < enemyList.size(); j++)
-						{
-							// if there is a collision between the two objects
-							if(SDL_HasIntersection(&player2.bulletList[i].posRect, &enemyList[j].posRect )){
+					// use the player 2 bullet list to see if the active bullets
+					// hit any of the enemies
+					for (int i = 0; i < player2.bulletList.size(); i++) {
+						// check to see if this bullet is active (onscreen)
+						if (player2.bulletList[i].active == true) {
 
-								// play explosion sound
-								Mix_PlayChannel(-1, explosionSound, 0);
+							// check all enemies against the active bullet
+							for (int j = 0; j < enemyList.size(); j++) {
+								// if there is a collision between the two objects
+								if (SDL_HasIntersection(
+										&player2.bulletList[i].posRect,
+										&enemyList[j].posRect)) {
 
-								// reset the enemy
-								enemyList[j].Reset();
+									// play explosion sound
+									Mix_PlayChannel(-1, explosionSound, 0);
 
-								// reset the enemy
-								player2.bulletList[i].Reset();
+									MakeExplosion(enemyList[j].posRect.x, enemyList[j].posRect.y);
 
-								//give the player some points
-								player2.playerScore += 50;
+									// reset the enemy
+									enemyList[j].Reset();
+
+									// reset the enemy
+									player2.bulletList[i].Reset();
+
+									//give the player some points
+									player2.playerScore += 50;
+
+									// check to see if there is a winning condition
+									if(player2.playerScore >= 1000)
+									{
+										// go to win
+										players2 = false;
+										gameState = WIN;
+									}
+								}
+							}
+
+						}
+					}
+
+					// check to see if the enemies hit the player
+					for (int i = 0; i < enemyList.size(); i++) {
+						// if there is a collision between the two objects
+						if (SDL_HasIntersection(&player2.posRect,
+								&enemyList[i].posRect)) {
+
+							// play explosion sound
+							Mix_PlayChannel(-1, explosionSound, 0);
+
+							MakeExplosion(player2.posRect.x-32, player2.posRect.y-32);
+
+							// reset the enemy
+							enemyList[i].Reset();
+
+							//give the player some points
+							player2.playerLives -= 1;
+
+							//if game over - player lives <= 0
+							if (player1.playerLives <= 0 && player2.playerLives <= 0) {
+								players2 = false;
+								gameState = LOSE;
+								break;
 							}
 						}
 
 					}
+
 				}
+
+
 
 				// Draw Section
 				// clear the old screen buffer
@@ -1159,6 +1335,17 @@ for(int JoystickIndex=0; JoystickIndex < MaxJoysticks; ++JoystickIndex)
 				{
 					// update enemy
 					enemyList[i].Draw(renderer);
+				}
+
+				//Draw the pool of explosions - 20
+				for (int i = 0; i < explodeList.size(); i++)
+				{
+					// check to see if active
+					if(explodeList[i].active == true){
+						// draw explode
+						explodeList[i].Draw(renderer);
+					}
+
 				}
 
 				// draw new, updated screen

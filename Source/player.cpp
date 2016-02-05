@@ -116,6 +116,28 @@ Player::Player(SDL_Renderer *renderer, int pNum, string filePath, string audioPa
 
 }
 
+// rest player method
+void Player::Reset(){
+	// place the player based on player number
+	if(playerNum == 0){
+		// set X and Y for Player 1
+		posRect.x = 250.0;
+		posRect.y = 500.0;
+	}else{
+		// set X and Y for Player 2
+		posRect.x = 550.0;
+		posRect.y = 500.0;
+	}
+
+	pos_X = posRect.x;
+	pos_Y = posRect.y;
+	playerLives = 3;
+	playerScore = 0;
+	xDir = 0;
+	yDir = 0;
+	active = true;
+}
+
 // NEW ********************************************************************************
 void Player::UpdateLives(SDL_Renderer *renderer){
 
@@ -164,7 +186,7 @@ void Player::UpdateLives(SDL_Renderer *renderer){
 // Week 5 ********************************************************************************
 void Player::UpdateScore(SDL_Renderer *renderer){
 
-	if(active == true){
+	//if(active == true){
 
 		// fix for to_string problems on linux
 
@@ -196,7 +218,7 @@ void Player::UpdateScore(SDL_Renderer *renderer){
 		SDL_FreeSurface(scoreSurface);
 
 		oldScore = playerScore;
-	}
+	//}
 }
 
 // Player Update method
@@ -205,7 +227,7 @@ void Player::Update(float deltaTime, SDL_Renderer *renderer)
 {
 
 	//if active
-	if(active == true){
+	//if(active == true){
 
 		// Adjust position floats based on speed, direction of joystick axis and deltaTime
 		pos_X += (speed * xDir) * deltaTime;
@@ -260,7 +282,7 @@ void Player::Update(float deltaTime, SDL_Renderer *renderer)
 
 		}
 
-	}
+	//}
 
 }
 
@@ -268,7 +290,7 @@ void Player::Update(float deltaTime, SDL_Renderer *renderer)
 void Player::Draw(SDL_Renderer *renderer)
 {
 	// if active
-	if(active == true){
+	//if(active == true){
 
 		// Draw the player texture using the vars texture and posRect
 		SDL_RenderCopy(renderer, texture, NULL, &posRect);
@@ -290,7 +312,7 @@ void Player::Draw(SDL_Renderer *renderer)
 		// NEW ********************************************************************************
 		SDL_RenderCopy(renderer, livesTexture, NULL, &livesPos);
 
-	}
+	//}
 }
 
 // Player Destruction method
@@ -303,7 +325,7 @@ Player::~Player()
 // Player Joystick Button Method
 void Player::OnControllerButton(const SDL_ControllerButtonEvent event)
 {
-	if(active == true){
+	//if(active == true){
 
 		// if the player's number is 0 and the joystick button is from joystick 0
 		if (event.which == 0 && playerNum == 0)
@@ -329,7 +351,7 @@ void Player::OnControllerButton(const SDL_ControllerButtonEvent event)
 			}
 		}
 
-	}
+	//}
 }
 
 // create a bullet
